@@ -11,12 +11,32 @@ socketio = SocketIO(app)
 
 # Variaveis
 jogadores_Disponiveis = []
+salas = {}
 
 @socketio.on('connect')
 def handle_connect():
     print(f"Cliente {request.sid} conectado.")
     emit('response', {'message': 'Conectado com sucesso!'})
 
+@socketio.on('disconnect')
+def handle_disconnect():
+    sid = request.sid
+    print(f"Cliente {sid} desconectado.")
+
+    # Remover da fila de espera se ele ainda não jogava
+    if sid in jogadores_Disponiveis:
+        jogadores_Disponiveis.remove(sid)
+        print(f"Jogador {sid} estava na fila e desconectou.")
+    
+    # Rover os jogadores da sala e avisar para o player2 sua desconexão
+    if sid in salas:
+        player2 = salas[sid]
+        emit('desconexao', {}, room=player2)
+        del salas[player2]
+        print(f"Jogador player2: {player2}, removido da sala")
+        del salas[sid]
+        print(f"Jogador player2: {sid}, removido da sala")
+        
 @socketio.on('multiplayer')
 def multiplayer(data):
     sid = request.sid
@@ -35,6 +55,8 @@ def envJogada(data):
         'y': y
     }
     emit('recebeJogada', mensagem, room=player2)
+    print(f"Enviando jogada: X - {x} e y - {y}, para o jogador: {player2}")
+
 
 @socketio.on('envAtualizacao')
 def envSituacao(data):
@@ -43,15 +65,22 @@ def envSituacao(data):
         'situacao': data['situacao']
     }
     emit('recebeSituacao', mensagem, room=player2)
+    print(f"Enviando situação: {data['situacao']}, para o jogador: {player2}")
 
 def conectar_Players():
-    id_sala = 0
     if len(jogadores_Disponiveis) >= 2:
         player1 = jogadores_Disponiveis.pop(0)
         player2 = jogadores_Disponiveis.pop(0)
+
+        # Inserindo os jogadores na sala
+        salas[player1] = player2
+        salas[player2] = player1
+
+        # Avisando os jogadores
         emit('multiplayerConexao', {'player2': player2}, room=player1)
         emit('multiplayerConexao', {'player1': player1}, room=player2)
-        print(f"Jogador {player1} e Jogador {player2}, estão conectados na sala {id_sala}")
+
+        print(f"Jogador {player1} e Jogador {player2}, estão conectados")
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)
