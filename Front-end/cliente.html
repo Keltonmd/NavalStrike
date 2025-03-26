@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<style>
+.intro { font-size:10pt; font-style:italic }
+.heading { font-size:14pt; font-weight:bold; font-family:sans-serif }
+.title { 
+    font-size:24pt; 
+    font-weight:bold; 
+    background-color:navy; 
+    color:white; 
+    text-align:center; 
+    font-family:sans-serif;
+    padding: 20px;
+    margin: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.game-board {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.grid-container {
+    background-color: #e8e8e8;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.grid-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.grid {
+    display: inline-block;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.status-panel {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #e3f2fd;
+    border-radius: 5px;
+}
+
+.turn-indicator {
+    font-weight: bold;
+    color: #1976d2;
+}
+
+.waiting-message {
+    text-align: center;
+    padding: 20px;
+    background-color: #fff3e0;
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #f57c00;
+}
+
+.grid img {
+    transition: transform 0.2s;
+}
+
+.grid img:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.status-message {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    display: none;
+}
+
+.loading.active {
+    display: block;
+}
+
+.restart-button {
+    display: none;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.restart-button:hover {
+    background-color: #1565c0;
+}
+
+.restart-button.active {
+    display: block;
+}
+
+/* Removendo estilos não utilizados */
+.start-button, .start-button:hover, .start-button.active, .start-button:disabled, .ready-status, .ready-status.active {
+    display: none;
+}
+</style>
+
+<script src="Front-end/static/js/battleship.js" type="text/javascript"></script>
+<script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+
+<script>
+    // Conectar ao servidor WebSocket
+    const socket = io('http://localhost:5000');
+
+    let player2 = null;
+    let isPlayerTurn = true;
+    let gameStarted = false;
+    let playerName = "Jogador " + Math.floor(Math.random() * 1000);
+    let isHost = false;
+
+    // Quando a conexão for bem-sucedida
+    socket.on('connect', () => {
+      console.log('Conectado ao servidor WebSocket');
+      socket.emit('multiplayer', { 
+        message: 'Jogador conectado e esperando por oponente',
+        playerName: playerName
+      });
+      updateStatusPanel("Conectando ao servidor...");
+    });
+
+    socket.on('multiplayerConexao', (data) => {
+      console.log('Dados de conexão recebidos:', data);
+      if (data.player2) {
+        player2 = data.player2;
+        isHost = true;
+        updateStatusPanel("Conectado com " + player2);
+        startGame();
+      }
+      if (data.player1) {
+        player2 = data.player1;
+        isHost = false;
+        updateStatusPanel("Conectado com " + data.player1);
+        startGame();
+      }
+    });
+
+    function updateStatusPanel(message) {
+      const statusPanel = document.getElementById('status-panel');
+      const statusMessage = document.createElement('div');
+      statusMessage.className = 'status-message';
+      statusMessage.textContent = message;
+      statusPanel.appendChild(statusMessage);
+      statusPanel.scrollTop = statusPanel.scrollHeight;
+    }
+
+    function enviarJogada(x, y) {
+      if (!isPlayerTurn || !gameStarted) {
+        updateStatusPanel("Não é sua vez de jogar!");
+        return;
+      }
+
+      console.log('Enviando jogada:', {x, y, playerName, player2});
+      socket.emit('envJogada', {
+        x: x,
+        y: y,
+        player2: player2,
+        playerName: playerName,
+        timestamp: new Date().toISOString()
+      });
+
+      isPlayerTurn = false;
+      updateTurnIndicator();
+    }
+
+    socket.on('recebeJogada', (data) => {
+      console.log('Jogada recebida:', data);
+      processarJogada(data.x, data.y);
+      isPlayerTurn = true;
+      updateTurnIndicator();
+    });
+
+    function enviarAtualizacao(situacao) {
+      // Envia a atualização para o servidor
+      socket.emit('envAtualizacao', {
+        situacao: situacao,
+        player2: player2,
+        playerName: playerName,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Atualiza o painel local
+      updateStatusPanel(situacao);
+    }
+
+    socket.on('recebeSituacao', (data) => {
+      console.log('Situação recebida: ' + data.situacao);
+      updateStatusPanel(data.situacao);
+    });
+
+    function updateTurnIndicator() {
+      const turnIndicator = document.getElementById('turn-indicator');
+      turnIndicator.textContent = isPlayerTurn ? "Sua vez!" : "Vez do oponente";
+      turnIndicator.style.color = isPlayerTurn ? "#2e7d32" : "#f44336";
+    }
+
+    function startGame() {
+      console.log('Iniciando jogo...');
+      gameStarted = true;
+      document.querySelector('.waiting-message').style.display = 'none';
+      
+      // Inicializa o jogo
+      imagePreload();
+      player = setupPlayer(false);
+      computer = setupPlayer(true);
+      
+      // Renderiza os tabuleiros
+      document.getElementById('game-board').innerHTML = `
+        <div class="game-board">
+          <div class="grid-container">
+            <div class="grid-title">NAVIOS INIMIGOS</div>
+            <div class="grid" id="enemy-grid"></div>
+          </div>
+          <div class="grid-container">
+            <div class="grid-title">NAVIOS ALIADOS</div>
+            <div class="grid" id="player-grid"></div>
+          </div>
+        </div>
+      `;
+
+      // Renderiza as grades
+      renderGrids();
+      
+      // Define quem começa baseado no host
+      isPlayerTurn = isHost;
+      updateStatusPanel("Jogo iniciado! " + (isHost ? "Você começa!" : "Aguarde sua vez!"));
+      updateTurnIndicator();
+    }
+
+    function renderGrids() {
+      // Limpa os containers
+      document.getElementById('enemy-grid').innerHTML = '';
+      document.getElementById('player-grid').innerHTML = '';
+
+      // Renderiza a grade do inimigo
+      for (let y = 0; y < gridy; y++) {
+        for (let x = 0; x < gridx; x++) {
+          const img = document.createElement('img');
+          img.src = "Front-end/static/img/batt100.gif";
+          img.width = 16;
+          img.height = 16;
+          img.onclick = () => gridClick(y, x);
+          document.getElementById('enemy-grid').appendChild(img);
+        }
+        document.getElementById('enemy-grid').appendChild(document.createElement('br'));
+      }
+
+      // Renderiza a grade do jogador
+      for (let y = 0; y < gridy; y++) {
+        for (let x = 0; x < gridx; x++) {
+          const img = document.createElement('img');
+          img.src = "Front-end/static/img/batt" + player[y][x][0] + ".gif";
+          img.width = 16;
+          img.height = 16;
+          document.getElementById('player-grid').appendChild(img);
+        }
+        document.getElementById('player-grid').appendChild(document.createElement('br'));
+      }
+    }
+
+    function setImage(y, x, id, ispc) {
+      const grid = ispc ? 'enemy-grid' : 'player-grid';
+      const images = document.getElementById(grid).getElementsByTagName('img');
+      const index = y * gridx + x;
+      if (images[index]) {
+        images[index].src = "Front-end/static/img/batt" + id + ".gif";
+      }
+    }
+
+    function gridClick(y, x) {
+      if (gameStarted && isPlayerTurn) {
+        if (computer[y][x][0] < 100) {
+          setImage(y, x, 103, true);
+          var shipno = computer[y][x][1];
+          if (--computersships[shipno][1] == 0) {
+            sinkShip(computer, shipno, true);
+            if (--computerlives == 0) {
+              enviarAtualizacao("Você venceu o jogo!");
+              updateStatusPanel("Você venceu! O jogo acabou.");
+              gameStarted = false;
+              document.querySelector('.restart-button').classList.add('active');
+            }
+          }
+          enviarJogada(y, x);
+          // Não muda o turno se acertou
+          isPlayerTurn = true;
+          updateTurnIndicator();
+        } else if (computer[y][x][0] == 100) {
+          setImage(y, x, 102, true);
+          enviarJogada(y, x);
+          // Muda o turno se errou
+          isPlayerTurn = false;
+          updateTurnIndicator();
+        }
+      }
+    }
+
+    function sinkShip(grid, shipno, ispc) {
+      for (let y = 0; y < gridy; y++) {
+        for (let x = 0; x < gridx; x++) {
+          if (grid[y][x][1] == shipno) {
+            setImage(y, x, grid[y][x][2], ispc);
+          }
+        }
+      }
+    }
+
+    function processarJogada(x, y) {
+      if (player[x][y][0] < 100) {
+        setImage(x, y, 103, false);
+        var shipno = player[x][y][1];
+        if (--playersships[shipno][1] == 0) {
+          sinkShip(player, shipno, false);
+          if (--playerlives == 0) {
+            knowYourEnemy();
+            enviarAtualizacao("Você perdeu o jogo!");
+            updateStatusPanel("Você perdeu! O jogo acabou.");
+            gameStarted = false;
+            document.querySelector('.restart-button').classList.add('active');
+          }
+        }
+        // Não muda o turno se o oponente acertou
+        isPlayerTurn = false;
+        updateTurnIndicator();
+      } else {
+        setImage(x, y, 102, false);
+        // Muda o turno se o oponente errou
+        isPlayerTurn = true;
+        updateTurnIndicator();
+      }
+    }
+
+    function updateGameStatus(situacao) {
+      updateStatusPanel(situacao);
+    }
+
+    function restartGame() {
+      location.reload();
+    }
+</script>
+
+</head>
+
+<body>
+    <h1 class="title">Jogo de Batalha Naval - Multiplayer</h1>
+    
+    <div class="game-container">
+        <div class="player-info">
+            <span>Você: <strong>${playerName}</strong></span>
+            <span class="turn-indicator" id="turn-indicator">Aguardando início...</span>
+        </div>
+
+        <div class="status-panel" id="status-panel">
+            <div class="waiting-message">
+                Aguardando conexão com outro jogador...
+            </div>
+        </div>
+
+        <div id="game-board">
+            <!-- Os tabuleiros serão renderizados aqui -->
+        </div>
+
+        <button class="restart-button" onclick="restartGame()">
+            Jogar Novamente
+        </button>
+    </div>
+</body>
+
+</html>
