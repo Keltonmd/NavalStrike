@@ -1,0 +1,142 @@
+.intro { font-size:10pt; font-style:italic }
+.heading { font-size:14pt; font-weight:bold; font-family:sans-serif }
+.title { 
+    font-size:24pt; 
+    font-weight:bold; 
+    background-color:navy; 
+    color:white; 
+    text-align:center; 
+    font-family:sans-serif;
+    padding: 20px;
+    margin: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.game-board {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.grid-container {
+    background-color: #e8e8e8;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.grid-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.grid {
+    display: inline-block;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.status-panel {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.player-info {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #e3f2fd;
+    border-radius: 5px;
+}
+
+.turn-indicator {
+    font-weight: bold;
+    color: #1976d2;
+}
+
+.waiting-message {
+    text-align: center;
+    padding: 20px;
+    background-color: #fff3e0;
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #f57c00;
+}
+
+.grid img {
+    transition: transform 0.2s;
+}
+
+.grid img:hover {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.status-message {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    display: none;
+}
+
+.loading.active {
+    display: block;
+}
+
+.restart-button {
+    display: none;
+    margin: 20px auto;
+    padding: 10px 20px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.restart-button:hover {
+    background-color: #1565c0;
+}
+
+.restart-button.active {
+    display: block;
+}
+
+/* Removendo estilos não utilizados */
+.start-button, .start-button:hover, .start-button.active, .start-button:disabled, .ready-status, .ready-status.active {
+    display: none;
+}
