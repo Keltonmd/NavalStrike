@@ -53,7 +53,8 @@ def register_socket_events(socketio):
         y = data['y']
         mensagem = {
             'x': x,
-            'y': y
+            'y': y,
+            'nomePlayer2': data['playerName'] 
         }
         emit('recebeJogada', mensagem, room=player2)
         print(f"Enviando jogada: X - {x} e y - {y}, para o jogador: {player2}")
@@ -78,7 +79,7 @@ def register_socket_events(socketio):
             salas[player2] = player1
 
             # Avisando os jogadores
-            emit('multiplayerConexao', {'player2': player2}, room=player1)
-            emit('multiplayerConexao', {'player1': player1}, room=player2)
+            emit('multiplayerConexao', {'player1': player1, 'anfitriao': True}, room=player2)
+            emit('multiplayerConexao', {'player2': player2, 'anfitriao': False}, room=player1)
 
             print(f"Jogador {player1} e Jogador {player2}, estão conectados")
