@@ -18,7 +18,7 @@ function imagePreload() {
   var i,ids = [1,2,3,4,5,6,7,8,9,10,100,101,102,103,201,202,203,204,205,206];
   window.status = "Precarregando as imagens.";
   for (i=0;i<ids.length;++i) {
-    var img = new Image, name = "../static/img/batt"+ids[i]+".gif";
+    var img = new Image, name = "static/img/batt"+ids[i]+".gif";
     img.src = name;
     preloaded[i] = img;
   }
@@ -88,10 +88,10 @@ return grid;
 function setImage(y,x,id,ispc) {
   if ( ispc ) {
     computer[y][x][0] = id;
-    document.images["pc"+y+"_"+x].src = "../static/img/batt"+id+".gif";
+    document.images["pc"+y+"_"+x].src = "static/img/batt"+id+".gif";
   } else {
     player[y][x][0] = id;
-    document.images["ply"+y+"_"+x].src = "../static/img/batt"+id+".gif";
+    document.images["ply"+y+"_"+x].src = "static/img/batt"+id+".gif";
   }
 }
 
@@ -101,9 +101,9 @@ function showGrid(ispc) {
   for (y=0;y<gridy;++y) {
     for (x=0;x<gridx;++x) {
       if ( ispc )
-      document.write ('<a href="javascript:gridClick('+y+','+x+');"><img name="pc'+y+'_'+x+'" src="../static/img/batt100.gif" width=16 height=16></a>');
+      document.write ('<a href="javascript:gridClick('+y+','+x+');"><img name="pc'+y+'_'+x+'" src="static/img/batt100.gif" width=16 height=16></a>');
       else
-      document.write ('<a href="javascript:void(0);"><img name="ply'+y+'_'+x+'" src="../static/img/batt'+player[y][x][0]+'.gif" width=16 height=16></a>');
+      document.write ('<a href="javascript:void(0);"><img name="ply'+y+'_'+x+'" src="static/img/batt'+player[y][x][0]+'.gif" width=16 height=16></a>');
     }
     document.write('<br>');
   }
