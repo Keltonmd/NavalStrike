@@ -1,0 +1,102 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #2c3e50;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #e74c3c;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+button {
+    background-color: #1abc9c;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    color: white;
+}
+
+button:hover {
+    background-color: #16a085;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+}
+
+#tabuleiros {
+    display: flex;
+    justify-content: space-around;
+    width: 90%;
+}
+
+.tabuleiro-container {
+    text-align: center;
+}
+
+.tabuleiro {
+    display: grid;
+    grid-template-columns: repeat(16, 35px);
+    grid-template-rows: repeat(16, 35px);
+    gap: 3px;
+    background-color: #34495e;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.celula {
+    width: 35px;
+    height: 35px;
+    background-color: #3b5998;
+    border: 1px solid #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.celula img {
+    width: 80%;
+    height: 80%;
+    object-fit: cover;
+}
+
+.celula:hover {
+    background-color: #1abc9c;
+}
+
+#painel-info {
+    background-color: #e74c3c;
+    padding: 25px;
+    border-radius: 10px;
+    width: 250px;
+    text-align: center;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    #tabuleiros {
+        flex-direction: column;
+        align-items: center;
+    }
+    .tabuleiro {
+        grid-template-columns: repeat(16, 25px);
+        grid-template-rows: repeat(16, 25px);
+    }
+    .celula {
+        width: 30px;
+        height: 30px;
+    }
+}

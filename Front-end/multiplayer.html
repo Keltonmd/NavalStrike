@@ -1,276 +1,32 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-BR">
 <head>
-<link rel="stylesheet" href="static/css/global.css">
-<script src="Front-end/static/js/battleship.js" type="text/javascript"></script>
-<script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
-
-<script>
-    // Conectar ao servidor WebSocket
-    const socket = io('http://localhost:5000');
-
-    let player2 = null;
-    let isPlayerTurn = true;
-    let gameStarted = false;
-    let playerName = "Jogador " + Math.floor(Math.random() * 1000);
-    let isHost = false;
-
-    // Quando a conexão for bem-sucedida
-    socket.on('connect', () => {
-      console.log('Conectado ao servidor WebSocket');
-      socket.emit('multiplayer', { 
-        message: 'Jogador conectado e esperando por oponente',
-        playerName: playerName
-      });
-      updateStatusPanel("Conectando ao servidor...");
-    });
-
-    socket.on('multiplayerConexao', (data) => {
-      console.log('Dados de conexão recebidos:', data);
-      if (data.player2) {
-        player2 = data.player2;
-        isHost = true;
-        updateStatusPanel("Conectado com " + player2);
-        startGame();
-      }
-      if (data.player1) {
-        player2 = data.player1;
-        isHost = false;
-        updateStatusPanel("Conectado com " + data.player1);
-        startGame();
-      }
-    });
-
-    function updateStatusPanel(message) {
-      const statusPanel = document.getElementById('status-panel');
-      const statusMessage = document.createElement('div');
-      statusMessage.className = 'status-message';
-      statusMessage.textContent = message;
-      statusPanel.appendChild(statusMessage);
-      statusPanel.scrollTop = statusPanel.scrollHeight;
-    }
-
-    function enviarJogada(x, y) {
-      if (!isPlayerTurn || !gameStarted) {
-        updateStatusPanel("Não é sua vez de jogar!");
-        return;
-      }
-
-      console.log('Enviando jogada:', {x, y, playerName, player2});
-      socket.emit('envJogada', {
-        x: x,
-        y: y,
-        player2: player2,
-        playerName: playerName,
-        timestamp: new Date().toISOString()
-      });
-
-      isPlayerTurn = false;
-      updateTurnIndicator();
-    }
-
-    socket.on('recebeJogada', (data) => {
-      console.log('Jogada recebida:', data);
-      processarJogada(data.x, data.y);
-      isPlayerTurn = true;
-      updateTurnIndicator();
-    });
-
-    function enviarAtualizacao(situacao) {
-      // Envia a atualização para o servidor
-      socket.emit('envAtualizacao', {
-        situacao: situacao,
-        player2: player2,
-        playerName: playerName,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Atualiza o painel local
-      updateStatusPanel(situacao);
-    }
-
-    socket.on('recebeSituacao', (data) => {
-      console.log('Situação recebida: ' + data.situacao);
-      updateStatusPanel(data.situacao);
-    });
-
-    function updateTurnIndicator() {
-      const turnIndicator = document.getElementById('turn-indicator');
-      turnIndicator.textContent = isPlayerTurn ? "Sua vez!" : "Vez do oponente";
-      turnIndicator.style.color = isPlayerTurn ? "#2e7d32" : "#f44336";
-    }
-
-    function startGame() {
-      console.log('Iniciando jogo...');
-      gameStarted = true;
-      document.querySelector('.waiting-message').style.display = 'none';
-      
-      // Inicializa o jogo
-      imagePreload();
-      player = setupPlayer(false);
-      computer = setupPlayer(true);
-      
-      // Renderiza os tabuleiros
-      document.getElementById('game-board').innerHTML = `
-        <div class="game-board">
-          <div class="grid-container">
-            <div class="grid-title">NAVIOS INIMIGOS</div>
-            <div class="grid" id="enemy-grid"></div>
-          </div>
-          <div class="grid-container">
-            <div class="grid-title">NAVIOS ALIADOS</div>
-            <div class="grid" id="player-grid"></div>
-          </div>
-        </div>
-      `;
-
-      // Renderiza as grades
-      renderGrids();
-      
-      // Define quem começa baseado no host
-      isPlayerTurn = isHost;
-      updateStatusPanel("Jogo iniciado! " + (isHost ? "Você começa!" : "Aguarde sua vez!"));
-      updateTurnIndicator();
-    }
-
-    function renderGrids() {
-      // Limpa os containers
-      document.getElementById('enemy-grid').innerHTML = '';
-      document.getElementById('player-grid').innerHTML = '';
-
-      // Renderiza a grade do inimigo
-      for (let y = 0; y < gridy; y++) {
-        for (let x = 0; x < gridx; x++) {
-          const img = document.createElement('img');
-          img.src = "Front-end/static/img/batt100.gif";
-          img.width = 16;
-          img.height = 16;
-          img.onclick = () => gridClick(y, x);
-          document.getElementById('enemy-grid').appendChild(img);
-        }
-        document.getElementById('enemy-grid').appendChild(document.createElement('br'));
-      }
-
-      // Renderiza a grade do jogador
-      for (let y = 0; y < gridy; y++) {
-        for (let x = 0; x < gridx; x++) {
-          const img = document.createElement('img');
-          img.src = "Front-end/static/img/batt" + player[y][x][0] + ".gif";
-          img.width = 16;
-          img.height = 16;
-          document.getElementById('player-grid').appendChild(img);
-        }
-        document.getElementById('player-grid').appendChild(document.createElement('br'));
-      }
-    }
-
-    function setImage(y, x, id, ispc) {
-      const grid = ispc ? 'enemy-grid' : 'player-grid';
-      const images = document.getElementById(grid).getElementsByTagName('img');
-      const index = y * gridx + x;
-      if (images[index]) {
-        images[index].src = "Front-end/static/img/batt" + id + ".gif";
-      }
-    }
-
-    function gridClick(y, x) {
-      if (gameStarted && isPlayerTurn) {
-        if (computer[y][x][0] < 100) {
-          setImage(y, x, 103, true);
-          var shipno = computer[y][x][1];
-          if (--computersships[shipno][1] == 0) {
-            sinkShip(computer, shipno, true);
-            if (--computerlives == 0) {
-              enviarAtualizacao("Você venceu o jogo!");
-              updateStatusPanel("Você venceu! O jogo acabou.");
-              gameStarted = false;
-              document.querySelector('.restart-button').classList.add('active');
-            }
-          }
-          enviarJogada(y, x);
-          // Não muda o turno se acertou
-          isPlayerTurn = true;
-          updateTurnIndicator();
-        } else if (computer[y][x][0] == 100) {
-          setImage(y, x, 102, true);
-          enviarJogada(y, x);
-          // Muda o turno se errou
-          isPlayerTurn = false;
-          updateTurnIndicator();
-        }
-      }
-    }
-
-    function sinkShip(grid, shipno, ispc) {
-      for (let y = 0; y < gridy; y++) {
-        for (let x = 0; x < gridx; x++) {
-          if (grid[y][x][1] == shipno) {
-            setImage(y, x, grid[y][x][2], ispc);
-          }
-        }
-      }
-    }
-
-    function processarJogada(x, y) {
-      if (player[x][y][0] < 100) {
-        setImage(x, y, 103, false);
-        var shipno = player[x][y][1];
-        if (--playersships[shipno][1] == 0) {
-          sinkShip(player, shipno, false);
-          if (--playerlives == 0) {
-            knowYourEnemy();
-            enviarAtualizacao("Você perdeu o jogo!");
-            updateStatusPanel("Você perdeu! O jogo acabou.");
-            gameStarted = false;
-            document.querySelector('.restart-button').classList.add('active');
-          }
-        }
-        // Não muda o turno se o oponente acertou
-        isPlayerTurn = false;
-        updateTurnIndicator();
-      } else {
-        setImage(x, y, 102, false);
-        // Muda o turno se o oponente errou
-        isPlayerTurn = true;
-        updateTurnIndicator();
-      }
-    }
-
-    function updateGameStatus(situacao) {
-      updateStatusPanel(situacao);
-    }
-
-    function restartGame() {
-      location.reload();
-    }
-</script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batalha Naval</title>
+    <link rel="stylesheet" href="static/css/multiplayer.css">
 </head>
-
 <body>
-    <h1 class="title">Jogo de Batalha Naval - Multiplayer</h1>
-    
-    <div class="game-container">
-        <div class="player-info">
-            <span>Você: <strong>${playerName}</strong></span>
-            <span class="turn-indicator" id="turn-indicator">Aguardando início...</span>
-        </div>
-
-        <div class="status-panel" id="status-panel">
-            <div class="waiting-message">
-                Aguardando conexão com outro jogador...
+    <header>
+        <h1>Batalha Naval</h1>
+        <button onclick="window.location.href='index.html'">Voltar ao Início</button>
+    </header>
+    <main>
+        <section id="tabuleiros">
+            <div class="tabuleiro-container">
+                <h2>Player 2</h2>
+                <div id="tabuleiro2" class="tabuleiro"></div>
             </div>
-        </div>
-
-        <div id="game-board">
-            <!-- Os tabuleiros serão renderizados aqui -->
-        </div>
-
-        <button class="restart-button" onclick="restartGame()">
-            Jogar Novamente
-        </button>
-    </div>
+            <div id="painel-info">
+                <h2>Painel de Informações</h2>
+            </div>
+            <div class="tabuleiro-container">
+                <h2>Player 1</h2>
+                <div id="tabuleiro1" class="tabuleiro"></div>
+            </div>
+        </section>
+    </main>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="static/js/multiplayer.js"></script>
 </body>
-
 </html>
