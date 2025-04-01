@@ -20,6 +20,11 @@ let playerNavios = []
 let playerTurno = false;
 let fimGame = false
 
+let jogarNov1 = false
+let jogarNov2 = false
+let resposta = false
+let vencedor = false
+
 // Carrega as imagens em memoria
 let preloaded = [];
 let ids = [1,2,3,4,5,6,7,8,9,10,100,101,102,103,201,202,203,204,205,206];
@@ -41,6 +46,8 @@ function criarTabuleiro() {
     player1Pontos = 0;
     player2Pontos = 0;
     player2 = null;
+    tabPlayer1 = [];
+    tabPlayer2 = [];
 
     for (let i = 0; i < tabX; i++) {
         tabPlayer1[i] = [];
@@ -56,7 +63,7 @@ function preCarregamento() {
     window.status = "Precarregando as imagens.";
     for (let i = 0; i < ids.length; i++) {
         let img = new Image;
-        let caminho = "static/img/batt"+ids[i]+".gif";
+        let caminho = "img/batt"+ids[i]+".gif";
         img.src = caminho
         preloaded[i] = caminho       
     }
@@ -185,6 +192,12 @@ function carregarTabuleiro() {
     }
 }
 
+function resetarTabuleiro() {
+    // Limpa o conteúdo dos tabuleiros
+    document.getElementById("tabuleiro1").innerHTML = "";
+    document.getElementById("tabuleiro2").innerHTML = "";
+}
+
 // Função para criar a imagem de cada célula
 function criarImagem(valor) {
     const img = document.createElement("img");
@@ -288,6 +301,7 @@ function validarJogada(x, y) {
                     enviarSituacao(imgs, tipo);
                     console.log(tipo)
                 }
+                atualizarPlacar()
                 validarVencedor()
                 return;
             }
@@ -332,15 +346,18 @@ function enviarSituacao(validacao, tipo) {
 }
 
 function validarVencedor() {
-    if (player1Pontos == 11) {
+    if (player1Pontos == 1) {
         playerTurno = false
         fimGame = true
+        vencedor = true
         atualizarPainel('PARABENS!!!\nVocê foi o Vecedor')
+        mostrarModal(false)
     }
-    if (player2Pontos == 11) {
+    if (player2Pontos == 1) {
         playerTurno = false
         fimGame = true
         atualizarPainel('Game Over!\nInfelizmente não foi dessa vez!')
+        mostrarModal(false)
     }
 }
 
@@ -365,6 +382,110 @@ function atualizarPainel(mensagem) {
         painel.scrollTop = painel.scrollHeight; // Rola para a última mensagem
     }
 }
+
+function atualizarPlacar() {
+    document.getElementById("score-player1").textContent = player1Pontos;
+    document.getElementById("score-player2").textContent = player2Pontos;
+}
+
+function reconectarPlayer() {
+    fecharModal(true)
+    resetarTabuleiro()
+    criarTabuleiro()
+    posicionarNavio()
+    atualizarPainel("Iniciando a Partida!")
+    atualizarPainel("Procurando Jogador...")
+    socket.emit('multiplayer', {});
+}
+
+// Mostrar o modal
+function mostrarModal(reconectar) {
+    if (reconectar) {
+        const modal = document.getElementById("modal-busca-nova");
+        modal.style.display = "flex"; 
+    } else {
+        const modal = document.getElementById("modal-jogo-novo");
+        modal.style.display = "flex";
+    }
+}
+
+// Fechar o modal
+function fecharModal(reconectar) {
+    if (reconectar) {
+        const modal = document.getElementById("modal-busca-nova");
+        modal.style.display = "none"; 
+    } else {
+        const modal = document.getElementById("modal-jogo-novo");
+        modal.style.display = "none";
+    }
+}
+
+function iniciarContagem() {
+    fecharModal(false)
+    tempoRestante = 60;
+    timerInterval = setInterval(() => {
+        tempoRestante--;
+
+        if (tempoRestante <= 0) {
+            clearInterval(timerInterval);
+            reconectarPlayer()
+        }
+        if(resposta) {
+            clearInterval(timerInterval);
+            revanche()
+        }
+    }, 1000);
+}
+
+function revanche() {
+    if (jogarNov1 && jogarNov2) {
+        let sid = player2
+        resetarTabuleiro()
+        criarTabuleiro()
+        if(vencedor) {
+            playerTurno = true
+            vencedor = false
+        }
+        player2 = sid
+        posicionarNavio()
+        atualizarPainel("Iniciando a Partida!")
+        carregarTabuleiro()
+        if(playerTurno) {
+            atualizarPainel("Sua vez de Jogar!")
+        }
+    } else {
+        reconectarPlayer()
+    }
+}
+
+// Lógica para quando o jogador clicar em "Sim" ou "Não"
+document.getElementById("busca-btn-sim").addEventListener("click", () => {
+    reconectarPlayer()
+});
+
+document.getElementById("busca-btn-nao").addEventListener("click", () => {
+    window.location.href = "index.html";
+});
+
+// Revanche
+document.getElementById("novo-btn-sim").addEventListener("click", () => {
+    jogarNov1 = true
+    socket.emit('revanche',{
+        player2: player2,
+        revanche: jogarNov1
+    })
+    iniciarContagem()
+});
+
+document.getElementById("novo-btn-nao").addEventListener("click", () => {
+    jogarNov1 = false
+    socket.emit('revanche',{
+        player2: player2,
+        revanche: jogarNov1
+    })
+    fecharModal(false)
+    reconectarPlayer();
+});
 
 // Evento de conexão
 socket.on("connect", () => {
@@ -400,7 +521,13 @@ socket.on('recebeSituacao', (data)=> {
         tabPlayer2[x][y] = id
         atualizarTab2(x, y, id)
     }
+    atualizarPlacar()
     validarVencedor()
+})
+
+socket.on('recbRevant', (data)=> {
+    jogarNov2 = data.revanche
+    resposta = true
 })
 
 socket.on('multiplayerConexao', (data)=> {
@@ -417,6 +544,7 @@ socket.on('desconexao', (data)=> {
     atualizarPainel("O Player2 foi Desconectado!")
     playerTurno = false;
     fimGame = true;
+    mostrarModal(true)
 })
 
 function inicarGame() {
