@@ -78,11 +78,12 @@ main {
 }
 
 #painel-info {
-    background-color: #e74c3c;
+    background-color: #222;
     padding: 25px;
     border-radius: 10px;
     width: 250px;
     text-align: center;
+    color: white;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -99,4 +100,83 @@ main {
         width: 30px;
         height: 30px;
     }
+}
+
+#placar-bottom {
+    background-color: #444;
+    border-top: 3px solid #ffcc00;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    min-height: 80px;
+}
+
+.placar-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.player-score {
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.player-name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.score {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffcc00;
+}
+
+/* Estilo do Modal */
+.modal {
+    display: none; /* Inicialmente invisível */
+    position: fixed;
+    z-index: 1000; /* Garante que fique sobre outros elementos */
+    left: 50%;
+    top: 79%;
+    width: 250px;  /* Define a largura do modal */
+    height: 100px; /* Define a altura do modal */
+    background-color: rgb(255, 255, 255); /* Fundo branco */
+    transform: translate(-50%, -50%); /* Centraliza na tela */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Sombra leve */
+    border-radius: 10px; /* Borda arredondada */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #000000;
+    padding: 20px;
+}
+
+.modal-botoes {
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-sim {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-nao {
+    background-color: #dc3545;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.8;
 }

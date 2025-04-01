@@ -58,6 +58,13 @@ def register_socket_events(socketio):
         emit('recebeJogada', mensagem, room=player2)
         print(f"Enviando jogada: X - {x} e y - {y}, para o jogador: {player2}")
 
+    @socketio.on('revanche')
+    def revanche(data):
+        menssagem = {
+            'revanche': data['revanche']
+        }
+        emit('recbRevant', menssagem, room=data['player2'])
+        print(f"Solicitando revanche, para o jogador: {data['player2']}")
 
     @socketio.on('envAtualizacao')
     def envSituacao(data):
@@ -69,7 +76,7 @@ def register_socket_events(socketio):
             'resultado': data['resultado']
         }
         emit('recebeSituacao', mensagem, room=player2)
-        print(f"Enviando Pontuacao: {data['pontuacao']} 255, para o jogador: {player2}")
+        print(f"Enviando\nPontuacao: {data['pontuacao']}\nResultado: {data['resultado']} e imagens, para o jogador: {player2}")
 
     def conectar_Players():
         if len(jogadores_Disponiveis) >= 2:

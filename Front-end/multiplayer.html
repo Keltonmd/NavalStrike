@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batalha Naval</title>
-    <link rel="stylesheet" href="static/css/multiplayer.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
@@ -19,14 +19,57 @@
             </div>
             <div id="painel-info">
                 <h2>Painel de Informações</h2>
+                <!-- Seção superior para mensagens -->
+                <div id="mensagens-topo">
+                    <div id="mensagens"></div> <!-- Área para mensagens -->
+                </div>
+                
+                <!-- Seção inferior para o placar -->
+                <div id="placar-bottom">
+                    <h3>Placar</h3>
+                    <div class="placar-container">
+                        <div class="player-score">
+                            <span class="player-name">Player 1 - </span>
+                            <span class="score" id="score-player1">0</span>
+                        </div>
+                        <div class="player-score">
+                            <span class="player-name">Player 2 - </span>
+                            <span class="score" id="score-player2">0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+            
             <div class="tabuleiro-container">
                 <h2>Player 1</h2>
                 <div id="tabuleiro1" class="tabuleiro"></div>
             </div>
         </section>
     </main>
+
+    <!-- Modal de Jogo Novo -->
+    <div id="modal-jogo-novo" class="modal">
+        <div class="modal-conteudo">
+            <h3>Você quer jogar novamente com o Player 2?</h3>
+            <div class="modal-botoes">
+                <button id="novo-btn-sim" class="btn-sim">Sim</button>
+                <button id="novo-btn-nao" class="btn-nao">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de queda -->
+    <div id="modal-busca-nova" class="modal">
+        <div class="modal-busca-conteudo">
+            <h3>Você quer encontrar outro Jogador?</h3>
+            <div class="modal-busca-botoes">
+                <button id="busca-btn-sim" class="btn-sim">Sim</button>
+                <button id="busca-btn-nao" class="btn-nao">Não</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <script src="static/js/multiplayer.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
