@@ -1,5 +1,5 @@
 // Conexão WebSocket
-const socket = io("http://localhost:5000");
+const socket = io("https://navalstrik.ddns.net");
 
 // id dos navios
 const navios =  [[[1,5], [1,2,5], [1,2,3,5], [1,2,3,4,5]], [[6,10], [6,7,10], [6,7,8,10], [6,7,8,9,10]]];
@@ -299,7 +299,6 @@ function validarJogada(x, y) {
 
                 if (imgs.length > 0) {
                     enviarSituacao(imgs, tipo);
-                    console.log(tipo)
                 }
                 atualizarPlacar()
                 validarVencedor()
@@ -489,11 +488,9 @@ document.getElementById("novo-btn-nao").addEventListener("click", () => {
 
 // Evento de conexão
 socket.on("connect", () => {
-    console.log("Solicitando conexão ao servidor!");
 });
 
 socket.on('response', (data)=> {
-    console.log("Servidor: ", data.mensagem)
 })
 
 socket.on('recebeJogada', (data)=> {
