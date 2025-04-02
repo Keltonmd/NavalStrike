@@ -2,7 +2,7 @@
 
 <p align="center">
  <img src= "navalLogo.png" width=40%>
-<p>
+</p>
 
   
 ## Sobre o Projeto
@@ -66,6 +66,8 @@ O projeto foi desenvolvido pelos seguintes integrantes:
 
 O código-fonte e toda a documentação do projeto estão disponíveis no repositório do GitHub:
 [NavalStrike - GitHub](https://github.com/Keltonmd/NavalStrike)
+
+[![My Skills](https://skillicons.dev/icons?i=python,aws,javascript,html,css,flask,git,)](https://skillicons.dev)
 
 Sinta-se à vontade para explorar, contribuir e sugerir melhorias!
 
