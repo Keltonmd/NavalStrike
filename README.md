@@ -1,7 +1,7 @@
 # NavalStrike 🌊⚓🎯
 
 <p align="center">
- <img src= "navalLogo.png" width=20% height=30%>
+ <img src= "navalLogo.png" width=20% height=20%>
 </p>
   
 ## 📌 Sobre o Projeto
