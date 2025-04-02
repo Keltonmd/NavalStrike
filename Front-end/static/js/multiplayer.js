@@ -1,5 +1,5 @@
 // Conexão WebSocket
-const socket = io("https://navalstrik.ddns.net");
+const socket = io("https://navalstrike.ddns.net");
 
 // id dos navios
 const navios =  [[[1,5], [1,2,5], [1,2,3,5], [1,2,3,4,5]], [[6,10], [6,7,10], [6,7,8,10], [6,7,8,9,10]]];
@@ -345,14 +345,14 @@ function enviarSituacao(validacao, tipo) {
 }
 
 function validarVencedor() {
-    if (player1Pontos == 1) {
+    if (player1Pontos == 11) {
         playerTurno = false
         fimGame = true
         vencedor = true
         atualizarPainel('PARABENS!!!\nVocê foi o Vecedor')
         mostrarModal(false)
     }
-    if (player2Pontos == 1) {
+    if (player2Pontos == 11) {
         playerTurno = false
         fimGame = true
         atualizarPainel('Game Over!\nInfelizmente não foi dessa vez!')
