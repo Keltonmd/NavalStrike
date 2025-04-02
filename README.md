@@ -1,6 +1,10 @@
 # NavalStrike 🌊⚓🎯
 
-## Sobre o Projeto
+<p align="center">
+ <img src= "navalLogo.png" width=40%>
+</p>
+  
+## 📌 Sobre o Projeto
 
 NavalStrike é um jogo multiplayer de Batalha Naval desenvolvido como parte da disciplina de Sistemas Distribuídos, ministrada pelo professor Adriano Antunes ([GitHub](https://github.com/adrianoifnmg)). O objetivo do projeto é aplicar conceitos de sistemas distribuídos, como comunicação entre processos, concorrência e escalabilidade, em um jogo interativo e dinâmico.
 
