@@ -1,7 +1,7 @@
 # NavalStrike
 
 <p align="center">
- <img src= "navalLogo.png" width=20%>
+ <img src= "navalLogo.png" width=40%>
 <p>
 
   
